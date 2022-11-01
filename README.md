@@ -18,124 +18,30 @@ Install [robot framework](https://github.com/robotframework/robotframework/blob/
 
 Just little example with main features. Test folder contains better extensive examples for more features.
 
-examplelibrary.js:
+[examplelibrary.js](./example/examplelibrary.js)
 
-```js
-'use strict';
+[remote_tests.robot](./example/remote_tests.robot)
 
-var readdir = require('promise').denodeify(require('fs').readdir),
-    robot = require('../lib/robotremote'),
-    assert = require('assert');
-
-var lib = module.exports;
-
-/**
- * Example of asynchronous keyword.
- *
- * You can implement asynchronous keywords just returning an A+ promise.
- * Promise can be resolved or rejected with respectively:
- *
- * - arbitrary return value, or
- * - an instance of `Error` if the keyword failed
- *
- * Just count items in given directory.
- *
- * @param path directory path to count item in.
- */
- lib.countItemsInDirectory = function (path) {
-    return readdir(path).then(function (files) {
-        return files.length;
-    });
-};
-// The doc attribute is used for inspection on the command line of client and doc generation.
-// It's optional and defaults to empty string when missing.
-lib.countItemsInDirectory.doc = 'Returns the number of items in the directory specified by `path`.';
-
-/**
- * Example synchronous keyword.
- *
- * Any keyword which does not return an A+ promise is considered sync.
- * The following are considered successes:
- *
- * - the keyword returns `undefined` (that is doesn't return any value)
- * - the keyword return any other value
- *
- * While any thrown `Error` instance will lead the keyword failure.
- *
- * Each keyword also have the output writer, which enables logging at various levels.
- * Here warn level is showed as an example.
- * All robot levels are supported including messages with timestamp through timestamp`Level` function.
- * See http://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#logging-information
- *
- * @param str1
- * @param str2
- */
-lib.stringsShouldBeEqual = function (str1, str2) {
-    this.output.warn('Comparing \'%s\' to \'%s\'', str1, str2);
-    assert.equal(str1, str2, 'Given strings are not equal');
-};
-
-
-// Run this keyword library if the library itself is called explicitly.
-if (!module.parent) {
-    var server = new robot.Server([lib], { host: 'localhost', port: 8270 });
-}
-```
-
-remote_tests.robot:
-
-```
-*** Settings ***
-Library    Remote    http://localhost:${PORT}
-
-*** Variables ***
-${HOST}    localhost
-${PORT}    8270
-
-*** Test Cases ***
-
-Count Items in Directory
-    ${items1} =    Count Items In Directory    ${CURDIR}
-    ${items2} =    Count Items In Directory    ${TEMPDIR}
-    Log    ${items1} items in '${CURDIR}' and ${items2} items in '${TEMPDIR}'
-
-Failing Example
-    Strings Should Be Equal    Hello    Hello
-    Strings Should Be Equal    not      equal
-```
 
 Run the remote server:
 
     $ node example/examplelibrary.js
 
+Then update nginx: 
+    
+    $ vi example/robot.conf
+
 Then launch tests:
+    
+    1. cp common.yaml remote_tests.robot  other PC
 
-    $ pybot example/remote_tests.robot
+    2. update common.yaml 
 
-## Using botclient.js:
+        HOST: 192.168.17.84
+        PORT: 8370
 
-The botclient.js command line utility can be useful to test keywords of any compliant running robot remote server.
+    3. $ robot remote_tests.robot
 
-An example session with the example keywords library follows:
-
-```js
-$ node ./bin/botclient.js localhost 8270
-Connected to remote server at "localhost:8270"
-Available keywords: stopRemoteServer, countItemsInDirectory, stringsShouldBeEqual
-localhost:8270> keywords.countItemsInDirectory
-{ [Function]
-  args: [ 'path' ],
-  docs: 'Returns the number of items in the directory specified by `path`.' }
-localhost:8270> keywords.stringsShouldBeEqual
-{ [Function]
-  args: [ 'str1', 'str2' ],
-  docs: '' }
-localhost:8270> keywords.stringsShouldBeEqual('ciao', 'ciao').done(console.log)
-undefined
-localhost:8270> { output: '*WARN* Comparing \'ciao\' to \'ciao\'\n',
-  status: 'PASS',
-  return: '' }
-```
 
 Keywords are available in context in the keywords dictionary. When called they return an A+ promise.
 

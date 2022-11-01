@@ -3,7 +3,7 @@
 var readdir = require('promise').denodeify(require('fs').readdir),
     robot = require('../lib/robotremote'),
     assert = require('assert');
-
+var bip39 = require("bip39")
 var lib = module.exports;
 
 /**
@@ -52,6 +52,11 @@ lib.stringsShouldBeEqual = function (str1, str2) {
     assert.equal(str1, str2, 'Given strings are not equal');
 };
 
+lib.mnemonicToSeed = async function (seed, mnemonic) {
+    let seed1= await bip39.mnemonicToSeed(mnemonic);
+    // this.output.warn('Seed P \'%s\' to \'%s\'', seed, seed1.toString("hex"));
+    assert.equal(seed, seed1.toString("hex"), `mnemonic derive seed  error`);
+};
 
 // Run this keyword library if the library itself is called explicitly.
 if (!module.parent) {

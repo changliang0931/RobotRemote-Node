@@ -33,6 +33,7 @@
     },
     "main": "./lib/robotremote.js",
     "dependencies": {
+        "bip39": "^3.0.4",
         "xmlrpc": ">=1.3.2",
         "promise": ">=8.1.0"
     },
